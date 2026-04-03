@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -249,3 +250,112 @@ def publish_artifacts(
     </script>
     """))
     return None
+
+
+# ---------------------------------------------------------------------------
+# Live training chart
+# ---------------------------------------------------------------------------
+
+_TRAINING_CHART_HTML = """
+<div id="training-chart" style="width:100%;height:380px;border-radius:8px;overflow:hidden"></div>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+(function () {
+  var chart = echarts.init(document.getElementById('training-chart'), 'dark');
+  chart.setOption({
+    backgroundColor: '#1a1a2e',
+    animation: false,
+    grid: { top: 50, right: 80, bottom: 50, left: 70 },
+    xAxis: {
+      type: 'value', name: 'Timesteps', nameLocation: 'middle', nameGap: 30,
+      axisLabel: { formatter: function(v) { return (v / 1000).toFixed(0) + 'k'; } }
+    },
+    yAxis: [
+      {
+        type: 'value', name: 'Mean Reward', min: -50, max: 0,
+        splitLine: { lineStyle: { opacity: 0.15 } }
+      },
+      {
+        type: 'value', name: 'Success Rate', min: 0, max: 1,
+        axisLabel: { formatter: function(v) { return (v * 100).toFixed(0) + '%'; } },
+        splitLine: { show: false }
+      }
+    ],
+    legend: { top: 10, data: ['Mean Reward', 'Success Rate'] },
+    series: [
+      {
+        name: 'Mean Reward', type: 'line', yAxisIndex: 0,
+        data: [], smooth: 0.3, symbol: 'none',
+        lineStyle: { width: 2, color: '#5b8ff9' },
+        itemStyle: { color: '#5b8ff9' }
+      },
+      {
+        name: 'Success Rate', type: 'line', yAxisIndex: 1,
+        data: [], smooth: 0.3, symbol: 'none',
+        lineStyle: { width: 2, color: '#5ad8a6' },
+        itemStyle: { color: '#5ad8a6' }
+      }
+    ]
+  });
+  window._trainingChart = chart;
+  window.updateTrainingChart = function (t, r, s) {
+    chart.appendData({ seriesIndex: 0, data: [[t, r]] });
+    chart.appendData({ seriesIndex: 1, data: [[t, s]] });
+  };
+})();
+</script>
+"""
+
+
+class LiveChartCallback:
+    """Stable-Baselines3 callback that streams rollout stats to a live ECharts plot.
+
+    Tracks a rolling window of episode rewards and success rates, pushing
+    incremental data points to the chart every ``update_freq`` steps via
+    ``eval_js``. Requires Google Colab.
+
+    Usage::
+
+        from colab_utils import LiveChartCallback
+        model.learn(total_timesteps=1_000_000, callback=LiveChartCallback())
+    """
+
+    # Inherit lazily so the file can be imported without stable-baselines3 installed.
+    def __new__(cls, *args, **kwargs):
+        from stable_baselines3.common.callbacks import BaseCallback
+
+        class _Impl(BaseCallback):
+            def __init__(self, update_freq=500, window=100, verbose=0):
+                super().__init__(verbose)
+                self.update_freq = update_freq
+                self.window = window
+                self._ep_rewards: list[float] = []
+                self._ep_successes: list[float] = []
+
+            def _on_training_start(self) -> None:
+                from IPython.display import display, HTML
+                display(HTML(_TRAINING_CHART_HTML))
+
+            def _on_step(self) -> bool:
+                for info in self.locals.get("infos", []):
+                    if "episode" in info:
+                        self._ep_rewards.append(info["episode"]["r"])
+                    if "is_success" in info:
+                        self._ep_successes.append(float(info["is_success"]))
+
+                if self.n_calls % self.update_freq == 0 and self._ep_rewards:
+                    from google.colab import output as colab_output
+                    w = min(self.window, len(self._ep_rewards))
+                    mean_r = sum(self._ep_rewards[-w:]) / w
+                    mean_s = (
+                        sum(self._ep_successes[-w:]) / w
+                        if self._ep_successes else 0.0
+                    )
+                    colab_output.eval_js(
+                        f"window.updateTrainingChart && "
+                        f"window.updateTrainingChart({self.num_timesteps}, "
+                        f"{json.dumps(round(mean_r, 3))}, {json.dumps(round(mean_s, 3))})"
+                    )
+                return True
+
+        return _Impl(*args, **kwargs)
