@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+results/models/
+results/tb/
+results/eval_logs/
+*.zip

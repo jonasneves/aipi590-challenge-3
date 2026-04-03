@@ -1,0 +1,7 @@
+mujoco>=3.0.0
+gymnasium-robotics>=1.2.0
+stable-baselines3[extra]>=2.3.0
+moviepy>=1.0.3
+imageio[ffmpeg]
+matplotlib
+numpy
