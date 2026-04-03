@@ -287,35 +287,36 @@ _TRAINING_CHART_HTML = """\
   var entData     = __ENT_DATA__;
   var fmtK   = function(v){ return (v/1000).toFixed(0)+'k'; };
   var fmtPct = function(v){ return (v*100).toFixed(0)+'%'; };
+  var sl     = {lineStyle:{opacity:.1}};
   chart.setOption({
     backgroundColor: '#1a1a2e',
     animation: false,
     grid: [
-      {top:'10%', left:'7%',  right:'53%', bottom:'55%'},
-      {top:'10%', left:'55%', right:'5%',  bottom:'55%'},
-      {top:'58%', left:'7%',  right:'53%', bottom:'8%'},
-      {top:'58%', left:'55%', right:'5%',  bottom:'8%'},
+      {top:'14%', left:'7%',  width:'38%', height:'30%'},
+      {top:'14%', left:'57%', right:'3%',  height:'30%'},
+      {top:'62%', left:'7%',  width:'38%', bottom:'8%'},
+      {top:'62%', left:'57%', right:'3%',  bottom:'8%'},
     ],
     xAxis: [
-      {gridIndex:0, type:'value', axisLabel:{formatter:fmtK}, splitLine:{lineStyle:{opacity:.1}}},
-      {gridIndex:1, type:'value', axisLabel:{formatter:fmtK}, splitLine:{lineStyle:{opacity:.1}}},
-      {gridIndex:2, type:'value', axisLabel:{formatter:fmtK}, name:'Timesteps', nameLocation:'middle', nameGap:25, splitLine:{lineStyle:{opacity:.1}}},
-      {gridIndex:3, type:'value', axisLabel:{formatter:fmtK}, name:'Timesteps', nameLocation:'middle', nameGap:25, splitLine:{lineStyle:{opacity:.1}}},
+      {gridIndex:0, type:'value', axisLabel:{show:false}, splitLine:sl},
+      {gridIndex:1, type:'value', axisLabel:{show:false}, splitLine:sl},
+      {gridIndex:2, type:'value', axisLabel:{formatter:fmtK}, name:'Timesteps', nameLocation:'middle', nameGap:25, splitLine:sl},
+      {gridIndex:3, type:'value', axisLabel:{formatter:fmtK}, name:'Timesteps', nameLocation:'middle', nameGap:25, splitLine:sl},
     ],
     yAxis: [
-      {gridIndex:0, type:'value', name:'Reward',   min:-50, max:0, splitLine:{lineStyle:{opacity:.1}}},
-      {gridIndex:1, type:'value', name:'Success',  min:0,   max:1, axisLabel:{formatter:fmtPct}, splitLine:{lineStyle:{opacity:.1}}},
-      {gridIndex:2, type:'value', name:'Loss',     splitLine:{lineStyle:{opacity:.1}}},
-      {gridIndex:3, type:'value', name:'Ent Coef', splitLine:{lineStyle:{opacity:.1}}},
+      {gridIndex:0, type:'value', min:-50, max:0, splitLine:sl},
+      {gridIndex:1, type:'value', min:0,   max:1, axisLabel:{formatter:fmtPct}, splitLine:sl},
+      {gridIndex:2, type:'value', splitLine:sl},
+      {gridIndex:3, type:'value', splitLine:sl},
     ],
     title: [
-      {text:'Episode Reward',     textStyle:{fontSize:11,color:'#888'}, left:'5%',  top:'3%'},
-      {text:'Success Rate',       textStyle:{fontSize:11,color:'#888'}, left:'52%', top:'3%'},
-      {text:'Actor / Critic Loss',textStyle:{fontSize:11,color:'#888'}, left:'5%',  top:'52%'},
-      {text:'Entropy Coefficient',textStyle:{fontSize:11,color:'#888'}, left:'52%', top:'52%'},
+      {text:'Episode Reward',     textStyle:{fontSize:11,color:'#888'}, left:'7%',  top:'5%'},
+      {text:'Success Rate',       textStyle:{fontSize:11,color:'#888'}, left:'57%', top:'5%'},
+      {text:'Actor / Critic Loss',textStyle:{fontSize:11,color:'#888'}, left:'7%',  top:'53%'},
+      {text:'Entropy Coefficient',textStyle:{fontSize:11,color:'#888'}, left:'57%', top:'53%'},
     ],
     legend: [
-      {data:['Actor Loss','Critic Loss'], top:'56%', left:'7%', textStyle:{color:'#888',fontSize:10}},
+      {data:['Actor Loss','Critic Loss'], top:'55%', left:'7%', itemGap:16, textStyle:{color:'#888',fontSize:10}},
     ],
     series: [
       {type:'line', xAxisIndex:0, yAxisIndex:0, data:rewardData,  smooth:.3, symbol:'none', lineStyle:{color:'#5b8ff9',width:2}},
