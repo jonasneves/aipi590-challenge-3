@@ -256,75 +256,92 @@ def publish_artifacts(
 # Live training chart
 # ---------------------------------------------------------------------------
 
-_TRAINING_CHART_HTML = """
-<div id="training-chart" style="height:380px;border-radius:8px;overflow:hidden"></div>
+_TRAINING_CHART_HTML = """\
+<style>
+.tb-stats{display:flex;gap:24px;padding:12px 16px;background:#12122a;
+  border-radius:8px 8px 0 0;font-family:monospace;flex-wrap:wrap}
+.tb-stat{display:flex;flex-direction:column}
+.tb-val{color:#e8e8e8;font-size:15px;font-weight:600}
+.tb-lbl{color:#555;font-size:10px;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+</style>
+<div class="tb-stats">
+  <div class="tb-stat"><span class="tb-val">__TIMESTEPS__</span><span class="tb-lbl">timesteps</span></div>
+  <div class="tb-stat"><span class="tb-val">__EPISODES__</span><span class="tb-lbl">episodes</span></div>
+  <div class="tb-stat"><span class="tb-val">__FPS__ fps</span><span class="tb-lbl">throughput</span></div>
+  <div class="tb-stat"><span class="tb-val">__SUCCESS_PCT__%</span><span class="tb-lbl">success rate</span></div>
+  <div class="tb-stat"><span class="tb-val">__ELAPSED__s</span><span class="tb-lbl">elapsed</span></div>
+  <div class="tb-stat"><span class="tb-val">__N_UPDATES__</span><span class="tb-lbl">updates</span></div>
+</div>
+<div id="tb-chart" style="height:460px;border-radius:0 0 8px 8px;overflow:hidden;background:#1a1a2e"></div>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <script>
-(function () {
-  var dom = document.getElementById('training-chart');
+(function() {
+  var dom = document.getElementById('tb-chart');
   var w = Math.max(window.innerWidth - 32, 400);
   dom.style.width = w + 'px';
-  var chart = echarts.init(dom, 'dark', { width: w, height: 380 });
+  var chart = echarts.init(dom, 'dark', {width: w, height: 460});
+  var rewardData  = __REWARD_DATA__;
+  var successData = __SUCCESS_DATA__;
+  var actorData   = __ACTOR_DATA__;
+  var criticData  = __CRITIC_DATA__;
+  var entData     = __ENT_DATA__;
+  var fmtK   = function(v){ return (v/1000).toFixed(0)+'k'; };
+  var fmtPct = function(v){ return (v*100).toFixed(0)+'%'; };
   chart.setOption({
     backgroundColor: '#1a1a2e',
     animation: false,
-    grid: { top: 50, right: 90, bottom: 55, left: 90 },
-    xAxis: {
-      type: 'value', name: 'Timesteps', nameLocation: 'middle', nameGap: 32,
-      axisLabel: { formatter: function(v) { return (v / 1000).toFixed(0) + 'k'; } }
-    },
-    yAxis: [
-      {
-        type: 'value', name: 'Mean Reward', min: -50, max: 0,
-        axisLabel: { formatter: function(v) { return v.toFixed(0); } },
-        splitLine: { lineStyle: { opacity: 0.15 } }
-      },
-      {
-        type: 'value', name: 'Success Rate', min: 0, max: 1,
-        axisLabel: { formatter: function(v) { return (v * 100).toFixed(0) + '%'; } },
-        splitLine: { show: false }
-      }
+    grid: [
+      {top:'10%', left:'7%',  right:'53%', bottom:'55%'},
+      {top:'10%', left:'55%', right:'5%',  bottom:'55%'},
+      {top:'58%', left:'7%',  right:'53%', bottom:'8%'},
+      {top:'58%', left:'55%', right:'5%',  bottom:'8%'},
     ],
-    legend: { top: 12, right: 90, data: ['Mean Reward', 'Success Rate'] },
+    xAxis: [
+      {gridIndex:0, type:'value', axisLabel:{formatter:fmtK}, splitLine:{lineStyle:{opacity:.1}}},
+      {gridIndex:1, type:'value', axisLabel:{formatter:fmtK}, splitLine:{lineStyle:{opacity:.1}}},
+      {gridIndex:2, type:'value', axisLabel:{formatter:fmtK}, name:'Timesteps', nameLocation:'middle', nameGap:25, splitLine:{lineStyle:{opacity:.1}}},
+      {gridIndex:3, type:'value', axisLabel:{formatter:fmtK}, name:'Timesteps', nameLocation:'middle', nameGap:25, splitLine:{lineStyle:{opacity:.1}}},
+    ],
+    yAxis: [
+      {gridIndex:0, type:'value', name:'Reward',   min:-50, max:0, splitLine:{lineStyle:{opacity:.1}}},
+      {gridIndex:1, type:'value', name:'Success',  min:0,   max:1, axisLabel:{formatter:fmtPct}, splitLine:{lineStyle:{opacity:.1}}},
+      {gridIndex:2, type:'value', name:'Loss',     splitLine:{lineStyle:{opacity:.1}}},
+      {gridIndex:3, type:'value', name:'Ent Coef', splitLine:{lineStyle:{opacity:.1}}},
+    ],
+    title: [
+      {text:'Episode Reward',     textStyle:{fontSize:11,color:'#888'}, left:'5%',  top:'3%'},
+      {text:'Success Rate',       textStyle:{fontSize:11,color:'#888'}, left:'52%', top:'3%'},
+      {text:'Actor / Critic Loss',textStyle:{fontSize:11,color:'#888'}, left:'5%',  top:'52%'},
+      {text:'Entropy Coefficient',textStyle:{fontSize:11,color:'#888'}, left:'52%', top:'52%'},
+    ],
+    legend: [
+      {data:['Actor Loss','Critic Loss'], top:'56%', left:'7%', textStyle:{color:'#888',fontSize:10}},
+    ],
     series: [
-      {
-        name: 'Mean Reward', type: 'line', yAxisIndex: 0,
-        data: [], smooth: 0.3, symbol: 'none',
-        lineStyle: { width: 2, color: '#5b8ff9' },
-        itemStyle: { color: '#5b8ff9' }
-      },
-      {
-        name: 'Success Rate', type: 'line', yAxisIndex: 1,
-        data: [], smooth: 0.3, symbol: 'none',
-        lineStyle: { width: 2, color: '#5ad8a6' },
-        itemStyle: { color: '#5ad8a6' }
-      }
+      {type:'line', xAxisIndex:0, yAxisIndex:0, data:rewardData,  smooth:.3, symbol:'none', lineStyle:{color:'#5b8ff9',width:2}},
+      {type:'line', xAxisIndex:1, yAxisIndex:1, data:successData, smooth:.3, symbol:'none', lineStyle:{color:'#5ad8a6',width:2}, areaStyle:{color:'rgba(90,216,166,.07)'}},
+      {name:'Actor Loss',  type:'line', xAxisIndex:2, yAxisIndex:2, data:actorData,  smooth:.3, symbol:'none', lineStyle:{color:'#ff7875',width:2}},
+      {name:'Critic Loss', type:'line', xAxisIndex:2, yAxisIndex:2, data:criticData, smooth:.3, symbol:'none', lineStyle:{color:'#ffd666',width:2}},
+      {type:'line', xAxisIndex:3, yAxisIndex:3, data:entData,     smooth:.3, symbol:'none', lineStyle:{color:'#d3adf7',width:2}},
     ]
   });
-  window._trainingChart = chart;
-  window.updateTrainingChart = function (t, r, s) {
-    chart.appendData({ seriesIndex: 0, data: [[t, r]] });
-    chart.appendData({ seriesIndex: 1, data: [[t, s]] });
-  };
 })();
-</script>
-"""
+</script>"""
 
 
 class LiveChartCallback:
-    """Stable-Baselines3 callback that streams rollout stats to a live ECharts plot.
+    """SB3 callback that renders a live 4-panel ECharts training dashboard.
 
-    Tracks a rolling window of episode rewards and success rates, pushing
-    incremental data points to the chart every ``update_freq`` steps via
-    ``eval_js``. Requires Google Colab.
+    Shows episode reward, success rate, actor/critic loss, and entropy
+    coefficient. Uses clear_output + full redraw on each update — avoids
+    eval_js iframe scoping issues in Colab.
 
     Usage::
 
-        from colab_utils import LiveChartCallback
         model.learn(total_timesteps=1_000_000, callback=LiveChartCallback())
     """
 
-    # Inherit lazily so the file can be imported without stable-baselines3 installed.
+    # Lazy __new__ so this file can be imported without stable-baselines3.
     def __new__(cls, *args, **kwargs):
         from stable_baselines3.common.callbacks import BaseCallback
 
@@ -335,10 +352,15 @@ class LiveChartCallback:
                 self.window = window
                 self._ep_rewards: list[float] = []
                 self._ep_successes: list[float] = []
+                self._history: dict[str, list] = {
+                    "timesteps": [], "reward": [], "success": [],
+                    "actor_loss": [], "critic_loss": [], "ent_coef": [],
+                }
 
             def _on_training_start(self) -> None:
-                from IPython.display import display, HTML
-                display(HTML(_TRAINING_CHART_HTML))
+                from IPython.display import clear_output, display, HTML
+                clear_output(wait=True)
+                display(HTML(self._render()))
 
             def _on_step(self) -> bool:
                 for info in self.locals.get("infos", []):
@@ -348,18 +370,49 @@ class LiveChartCallback:
                         self._ep_successes.append(float(info["is_success"]))
 
                 if self.n_calls % self.update_freq == 0 and self._ep_rewards:
-                    from google.colab import output as colab_output
                     w = min(self.window, len(self._ep_rewards))
                     mean_r = sum(self._ep_rewards[-w:]) / w
-                    mean_s = (
-                        sum(self._ep_successes[-w:]) / w
-                        if self._ep_successes else 0.0
-                    )
-                    colab_output.eval_js(
-                        f"window.updateTrainingChart && "
-                        f"window.updateTrainingChart({self.num_timesteps}, "
-                        f"{json.dumps(round(mean_r, 3))}, {json.dumps(round(mean_s, 3))})"
-                    )
+                    mean_s = sum(self._ep_successes[-w:]) / w if self._ep_successes else 0.0
+                    lv = self.model.logger.name_to_value
+
+                    h = self._history
+                    h["timesteps"].append(self.num_timesteps)
+                    h["reward"].append(round(mean_r, 3))
+                    h["success"].append(round(mean_s, 3))
+                    h["actor_loss"].append(round(float(lv.get("train/actor_loss") or 0), 4))
+                    h["critic_loss"].append(round(float(lv.get("train/critic_loss") or 0), 4))
+                    h["ent_coef"].append(round(float(lv.get("train/ent_coef") or 0), 6))
+
+                    from IPython.display import clear_output, display, HTML
+                    clear_output(wait=True)
+                    display(HTML(self._render()))
+
                 return True
+
+            def _render(self) -> str:
+                h = self._history
+                ts = h["timesteps"]
+                n = len(ts)
+
+                def pairs(key: str) -> str:
+                    return json.dumps([[ts[i], h[key][i]] for i in range(n)])
+
+                lv = self.model.logger.name_to_value if self.model else {}
+                success_pct = round(h["success"][-1] * 100, 1) if h["success"] else 0.0
+
+                return (
+                    _TRAINING_CHART_HTML
+                    .replace("__TIMESTEPS__",   f"{self.num_timesteps:,}")
+                    .replace("__EPISODES__",    str(len(self._ep_rewards)))
+                    .replace("__FPS__",         str(int(lv.get("time/fps") or 0)))
+                    .replace("__SUCCESS_PCT__", str(success_pct))
+                    .replace("__ELAPSED__",     str(int(lv.get("time/time_elapsed") or 0)))
+                    .replace("__N_UPDATES__",   f"{int(lv.get('train/n_updates') or 0):,}")
+                    .replace("__REWARD_DATA__",  pairs("reward"))
+                    .replace("__SUCCESS_DATA__", pairs("success"))
+                    .replace("__ACTOR_DATA__",   pairs("actor_loss"))
+                    .replace("__CRITIC_DATA__",  pairs("critic_loss"))
+                    .replace("__ENT_DATA__",     pairs("ent_coef"))
+                )
 
         return _Impl(*args, **kwargs)
