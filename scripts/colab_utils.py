@@ -149,6 +149,64 @@ def prepare_notebook(
     return repo_path
 
 
+def videos_to_gifs(
+    video_paths: Iterable[str | Path],
+    scale: int = 320,
+    fps: int = 5,
+    repo_dir: str | Path = DEFAULT_REPO_DIR,
+) -> list[Path]:
+    """Convert MP4 videos to animated GIFs for README inline playback.
+
+    Uses ffmpeg to downsample and convert. GIFs play inline in GitHub markdown
+    without needing drag-drop API or authentication.
+
+    Args:
+        video_paths: List of MP4 files to convert.
+        scale: Output width in pixels (height scaled proportionally).
+        fps: Frames per second in output GIF (lower = smaller file).
+        repo_dir: Repository directory.
+
+    Returns:
+        List of created GIF paths (relative to repo_dir).
+    """
+    import subprocess
+
+    repo_path = Path(repo_dir)
+    video_paths = [repo_path / Path(p) if not Path(p).is_absolute() else Path(p) for p in video_paths]
+
+    missing = [p for p in video_paths if not p.exists()]
+    if missing:
+        raise FileNotFoundError(f"Videos not found: {', '.join(str(p) for p in missing)}")
+
+    gif_paths = []
+
+    for video_path in video_paths:
+        gif_path = video_path.with_suffix(".gif")
+
+        try:
+            subprocess.run(
+                [
+                    "ffmpeg",
+                    "-i", str(video_path),
+                    "-vf", f"fps={fps},scale={scale}:-1:flags=lanczos",
+                    "-y",  # Overwrite without asking
+                    str(gif_path),
+                ],
+                check=True,
+                capture_output=True,
+            )
+            gif_paths.append(gif_path.relative_to(repo_path))
+            file_size_mb = gif_path.stat().st_size / (1024 * 1024)
+            print(f"Created {gif_path.name} ({file_size_mb:.1f} MB)")
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to convert {video_path.name}: {e.stderr.decode()}")
+        except FileNotFoundError:
+            print("Error: ffmpeg not found. Install with: apt-get install ffmpeg")
+            return []
+
+    return gif_paths
+
+
 def embed_videos_in_readme(
     video_paths: Iterable[str | Path],
     readme_path: str | Path = "README.md",
@@ -356,6 +414,64 @@ def _upload_github_asset(
     asset_url = f"https://github.com/user-attachments/assets/{asset_id}"
     print(f"Uploaded {video_path.name} → {asset_url}")
     return asset_url
+
+
+def update_readme_with_gifs(
+    gif_paths: list[str | Path],
+    readme_path: str | Path = "README.md",
+    repo_dir: str | Path = DEFAULT_REPO_DIR,
+) -> bool:
+    """Update README with inline GIF links.
+
+    Replaces video section with GIF markdown.
+
+    Args:
+        gif_paths: List of GIF files (relative to repo_dir).
+        readme_path: Path to README.
+        repo_dir: Repository directory.
+
+    Returns:
+        True if successful.
+    """
+    repo_path = Path(repo_dir)
+    readme_full = repo_path / readme_path
+
+    if not readme_full.exists():
+        print(f"README not found: {readme_full}")
+        return False
+
+    try:
+        with open(readme_full) as f:
+            readme_content = f.read()
+
+        # Build GIF section
+        gif_section = "\n## Rollout Videos (GIF)\n\n"
+        for gif_path in gif_paths:
+            gif_rel = Path(gif_path).relative_to(repo_path) if Path(gif_path).is_absolute() else gif_path
+            # Extract episode number from filename
+            name = Path(gif_path).stem
+            gif_section += f"### {name}\n\n"
+            gif_section += f"![{name}]({gif_rel})\n\n"
+
+        # Replace or append GIF section
+        if "## Rollout Videos (GIF)" in readme_content:
+            readme_content = re.sub(
+                r"## Rollout Videos \(GIF\)\n\n.*?(?=\n##|\Z)",
+                gif_section.rstrip() + "\n",
+                readme_content,
+                flags=re.DOTALL,
+            )
+        else:
+            readme_content += gif_section
+
+        with open(readme_full, "w") as f:
+            f.write(readme_content)
+
+        print(f"Updated {readme_path} with {len(gif_paths)} GIF(s)")
+        return True
+    except Exception as e:
+        print(f"Failed to update README: {e}")
+        return False
 
 
 def publish_release(
