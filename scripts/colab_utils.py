@@ -183,14 +183,23 @@ def embed_videos_in_readme(
     if missing:
         raise FileNotFoundError(f"Videos not found: {', '.join(str(p) for p in missing)}")
 
-    try:
-        from google.colab import userdata
-        token = userdata.get(TOKEN_SECRET_NAME)
-    except Exception:
-        token = None
+    import os
+
+    # Try env var first (Kaggle, GitHub Actions, etc.)
+    token = os.environ.get("GITHUB_TOKEN")
+
+    # Try Colab secret if available
+    if not token:
+        try:
+            from google.colab import userdata
+            token = userdata.get(TOKEN_SECRET_NAME)
+        except Exception:
+            pass
 
     if not token:
-        print("Error: No GitHub token available. Set GITHUB_TOKEN_AIPI590_CHALLENGE_3 in Colab secrets.")
+        print("Error: No GitHub token found.")
+        print("  Kaggle: Set GITHUB_TOKEN in Kaggle secrets")
+        print("  Colab: Set GITHUB_TOKEN_AIPI590_CHALLENGE_3 in Colab secrets")
         return False
 
     # Get authenticity token from GitHub edit page
@@ -399,14 +408,23 @@ def _publish_release_api(
     repo_path: Path,
 ) -> bool:
     """Create release using GitHub REST API."""
-    try:
-        from google.colab import userdata
-        token = userdata.get(TOKEN_SECRET_NAME)
-    except Exception:
-        token = None
+    import os
+
+    # Try env var first (works in Kaggle, GitHub Actions, etc.)
+    token = os.environ.get("GITHUB_TOKEN")
+
+    # Try Colab secret if available
+    if not token:
+        try:
+            from google.colab import userdata
+            token = userdata.get(TOKEN_SECRET_NAME)
+        except Exception:
+            pass
 
     if not token:
-        print("Error: No GitHub token available. Set GITHUB_TOKEN_AIPI590_CHALLENGE_3 in Colab secrets.")
+        print("Error: No GitHub token found.")
+        print("  Kaggle: Set GITHUB_TOKEN in Kaggle secrets")
+        print("  Colab: Set GITHUB_TOKEN_AIPI590_CHALLENGE_3 in Colab secrets")
         return False
 
     import urllib.request
