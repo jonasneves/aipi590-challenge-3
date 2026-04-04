@@ -10,7 +10,7 @@ import urllib.parse
 from pathlib import Path
 from typing import Iterable
 
-REPO_URL = "https://github.com/jonasneves/aipi590-challenge-3.git"
+REPO_URL = "https://github.com/aipi590-ggn/aipi590-challenge-3.git"
 DEFAULT_REPO_DIR = Path("/content/aipi590-challenge-3")
 TOKEN_SECRET_NAME = "GITHUB_TOKEN_AIPI590_CHALLENGE_3"
 
@@ -78,7 +78,7 @@ def _do_publish(
                 _json.dump(nb, f, indent=1)
                 f.write("\n")
 
-    repo_url = f"https://x-access-token:{token}@github.com/jonasneves/aipi590-challenge-3.git"
+    repo_url = f"https://x-access-token:{token}@github.com/aipi590-ggn/aipi590-challenge-3.git"
 
     subprocess.run(["git", "config", "user.email", "colab-bot@scaffold"], check=True, cwd=repo_path)
     subprocess.run(["git", "config", "user.name", "Colab Bot"], check=True, cwd=repo_path)

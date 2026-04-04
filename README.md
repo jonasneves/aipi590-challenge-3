@@ -19,8 +19,8 @@ Explore trained policy episodes with playback controls, speed adjustment, and re
 
 | Task | Notebook | Open in Colab |
 |------|----------|---------------|
-| Manipulation (Main) | [challenge3-pickandplace.ipynb](notebooks/challenge3-pickandplace.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jonasneves/aipi590-challenge-3/blob/main/notebooks/challenge3-pickandplace.ipynb) |
-| Reaching (Experimentation) | [challenge3-reach-experimentation.ipynb](notebooks/challenge3-reach-experimentation.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jonasneves/aipi590-challenge-3/blob/main/notebooks/challenge3-reach-experimentation.ipynb) |
+| Manipulation (Main) | [challenge3-pickandplace.ipynb](notebooks/challenge3-pickandplace.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/aipi590-ggn/aipi590-challenge-3/blob/main/notebooks/challenge3-pickandplace.ipynb) |
+| Reaching (Experimentation) | [challenge3-reach-experimentation.ipynb](notebooks/challenge3-reach-experimentation.ipynb) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/aipi590-ggn/aipi590-challenge-3/blob/main/notebooks/challenge3-reach-experimentation.ipynb) |
 
 - **pickandplace**: 1M timesteps, FetchPickAndPlace-v4 (grasping & manipulation)
 - **reach**: 200k timesteps, FetchReach-v4 (reaching task)
@@ -36,11 +36,11 @@ Downloadable from [GitHub Releases](../../releases):
 
 ### Challenge 3 (FetchReach-v4, 200k steps)
 
-- [Episode 0](https://github.com/jonasneves/aipi590-challenge-3/blob/main/results/videos/fetchreach-episode-0.mp4)
-- [Episode 1](https://github.com/jonasneves/aipi590-challenge-3/blob/main/results/videos/fetchreach-episode-1.mp4)
-- [Episode 2](https://github.com/jonasneves/aipi590-challenge-3/blob/main/results/videos/fetchreach-episode-2.mp4)
-- [Episode 3](https://github.com/jonasneves/aipi590-challenge-3/blob/main/results/videos/fetchreach-episode-3.mp4)
-- [Episode 4](https://github.com/jonasneves/aipi590-challenge-3/blob/main/results/videos/fetchreach-episode-4.mp4)
+- [Episode 0](https://github.com/aipi590-ggn/aipi590-challenge-3/blob/main/results/videos/fetchreach-episode-0.mp4)
+- [Episode 1](https://github.com/aipi590-ggn/aipi590-challenge-3/blob/main/results/videos/fetchreach-episode-1.mp4)
+- [Episode 2](https://github.com/aipi590-ggn/aipi590-challenge-3/blob/main/results/videos/fetchreach-episode-2.mp4)
+- [Episode 3](https://github.com/aipi590-ggn/aipi590-challenge-3/blob/main/results/videos/fetchreach-episode-3.mp4)
+- [Episode 4](https://github.com/aipi590-ggn/aipi590-challenge-3/blob/main/results/videos/fetchreach-episode-4.mp4)
 
 ## Key Decisions
 
