@@ -11,7 +11,7 @@ Training robotic grasping and reaching policies in MuJoCo simulation using SAC +
 
 ## 🎮 Interactive Visualization
 
-**[View Interactive Policy Rollouts →](https://jonasneves.github.io/aipi590-challenge-3/)**
+**[View Interactive Policy Rollouts →](https://aipi590-ggn.github.io/aipi590-challenge-3/)**
 
 Explore trained policy episodes with playback controls, speed adjustment, and real-time statistics.
 
