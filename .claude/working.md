@@ -172,12 +172,31 @@ Beyond DR: residual policy learning + real-to-sim adaptation (Isaac Sim integrat
 - `results/plots/` — training curves (matplotlib, saved after cell-plot)
 - `requirements.txt` — deps (mujoco, gymnasium-robotics, stable-baselines3, moviepy)
 
+## Best Practices Adopted from Challenge 2
+
+Aligned repository structure and documentation with Challenge 2 patterns:
+
+1. **README Structure**
+   - Dependency badges at top (Python, MuJoCo, SB3, License)
+   - Interactive visualization link prominently featured
+   - Notebooks table with Colab open badges
+   - Structure section showing directory layout
+   - Team section with standard format
+   - Dividing lines (---) for visual hierarchy
+
+2. **Team Attribution**
+   - Consistent format: Name · Name · Name
+   - Affiliation and term: Duke University · AIPI 590 · Spring 2026
+
+3. **Licensing**
+   - MIT LICENSE file created (matches badge reference)
+
 ## Metadata
 
 - **Created**: 2026-04-04
-- **Last Updated**: 2026-04-04 (session 2)
-- **Challenge Due**: 2026-03-31 (passed deadline, but core work complete)
-- **Team**: Jonas (user) + Claude (co-author)
+- **Last Updated**: 2026-04-04 (session 3)
+- **Challenge Due**: 2026-03-31 (passed deadline, core work complete)
+- **Team**: Lindsay Gross, Yifei Guo, Jonas Neves
 
 ## Recent Commits (Sessions 2-3)
 
