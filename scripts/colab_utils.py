@@ -188,18 +188,16 @@ def embed_videos_in_readme(
     # Try env var first (Kaggle, GitHub Actions, etc.)
     token = os.environ.get("GITHUB_TOKEN")
 
-    # Try Colab secret if available
+    # Try Colab secret as fallback
     if not token:
         try:
             from google.colab import userdata
-            token = userdata.get(TOKEN_SECRET_NAME)
+            token = userdata.get("GITHUB_TOKEN")
         except Exception:
             pass
 
     if not token:
-        print("Error: No GitHub token found.")
-        print("  Kaggle: Set GITHUB_TOKEN in Kaggle secrets")
-        print("  Colab: Set GITHUB_TOKEN_AIPI590_CHALLENGE_3 in Colab secrets")
+        print("Error: No GitHub token found. Set GITHUB_TOKEN environment variable or Colab secret.")
         return False
 
     # Get authenticity token from GitHub edit page
@@ -413,18 +411,16 @@ def _publish_release_api(
     # Try env var first (works in Kaggle, GitHub Actions, etc.)
     token = os.environ.get("GITHUB_TOKEN")
 
-    # Try Colab secret if available
+    # Try Colab secret as fallback
     if not token:
         try:
             from google.colab import userdata
-            token = userdata.get(TOKEN_SECRET_NAME)
+            token = userdata.get("GITHUB_TOKEN")
         except Exception:
             pass
 
     if not token:
-        print("Error: No GitHub token found.")
-        print("  Kaggle: Set GITHUB_TOKEN in Kaggle secrets")
-        print("  Colab: Set GITHUB_TOKEN_AIPI590_CHALLENGE_3 in Colab secrets")
+        print("Error: No GitHub token found. Set GITHUB_TOKEN environment variable or Colab secret.")
         return False
 
     import urllib.request
