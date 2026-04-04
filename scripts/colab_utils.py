@@ -197,7 +197,7 @@ def embed_videos_in_readme(
             pass
 
     if not token:
-        print("Error: No GitHub token found. Set GITHUB_TOKEN environment variable or Colab secret.")
+        print("Error: No GitHub token found. Set GITHUB_TOKEN environment variable.")
         return False
 
     # Get authenticity token from GitHub edit page
@@ -420,7 +420,7 @@ def _publish_release_api(
             pass
 
     if not token:
-        print("Error: No GitHub token found. Set GITHUB_TOKEN environment variable or Colab secret.")
+        print("Error: No GitHub token found. Set GITHUB_TOKEN environment variable.")
         return False
 
     import urllib.request
