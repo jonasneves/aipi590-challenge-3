@@ -211,15 +211,17 @@ def update_readme_with_gifs(
     gif_paths: list[str | Path],
     readme_path: str | Path = "README.md",
     repo_dir: str | Path = DEFAULT_REPO_DIR,
+    columns: int = 2,
 ) -> bool:
-    """Update README with inline GIF links.
+    """Update README with inline GIF links in a grid layout.
 
-    Replaces video section with GIF markdown.
+    Replaces video section with GIF markdown arranged in columns.
 
     Args:
         gif_paths: List of GIF files (relative to repo_dir).
         readme_path: Path to README.
         repo_dir: Repository directory.
+        columns: Number of columns (1=vertical, 2=horizontal pairs).
 
     Returns:
         True if successful.
@@ -237,19 +239,35 @@ def update_readme_with_gifs(
         with open(readme_full) as f:
             readme_content = f.read()
 
-        # Build GIF section
+        # Build GIF section with grid layout
         gif_section = "\n## Rollout Videos (GIF)\n\n"
-        for gif_path in gif_paths:
-            gif_rel = Path(gif_path).relative_to(repo_path) if Path(gif_path).is_absolute() else gif_path
-            # Extract episode number from filename
-            name = Path(gif_path).stem
-            gif_section += f"### {name}\n\n"
-            gif_section += f"![{name}]({gif_rel})\n\n"
+
+        if columns == 1:
+            # Vertical layout
+            for gif_path in gif_paths:
+                gif_rel = Path(gif_path).relative_to(repo_path) if Path(gif_path).is_absolute() else gif_path
+                name = Path(gif_path).stem
+                gif_section += f"### {name}\n\n![{name}]({gif_rel})\n\n"
+        else:
+            # Grid layout (HTML table for better control)
+            gif_section += '<table>\n'
+            for i in range(0, len(gif_paths), columns):
+                gif_section += '  <tr>\n'
+                for j in range(columns):
+                    if i + j < len(gif_paths):
+                        gif_path = gif_paths[i + j]
+                        gif_rel = Path(gif_path).relative_to(repo_path) if Path(gif_path).is_absolute() else gif_path
+                        name = Path(gif_path).stem
+                        gif_section += f'    <td><strong>{name}</strong><br><img src="{gif_rel}" width="100%"></td>\n'
+                    else:
+                        gif_section += '    <td></td>\n'
+                gif_section += '  </tr>\n'
+            gif_section += '</table>\n'
 
         # Replace or append GIF section
         if "## Rollout Videos (GIF)" in readme_content:
             readme_content = re.sub(
-                r"## Rollout Videos \(GIF\)\n\n.*?(?=\n##|\Z)",
+                r"## Rollout Videos \(GIF\).*?(?=\n##|\Z)",
                 gif_section.rstrip() + "\n",
                 readme_content,
                 flags=re.DOTALL,
@@ -260,7 +278,7 @@ def update_readme_with_gifs(
         with open(readme_full, "w") as f:
             f.write(readme_content)
 
-        print(f"Updated {readme_path} with {len(gif_paths)} GIF(s)")
+        print(f"Updated {readme_path} with {len(gif_paths)} GIF(s) ({columns} column(s))")
         return True
     except Exception as e:
         print(f"Failed to update README: {e}")
