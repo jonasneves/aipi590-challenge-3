@@ -37,8 +37,8 @@
 ## Architecture
 
 ### Notebooks
-- `challenge3.ipynb` — main: 1M timesteps, FetchPickAndPlace-v4, full sim2real analysis
-- `challenge3-v1.ipynb` — alternative: 200k timesteps, FetchReach-v4 (older variant), includes live chart now
+- `challenge3-pickandplace.ipynb` — main: 1M timesteps, FetchPickAndPlace-v4, full sim2real analysis
+- `challenge3-reach-experimentation.ipynb` — experimentation: 200k timesteps, FetchReach-v4, includes live chart
 
 ### Scripts
 - `scripts/colab_utils.py` — contains:

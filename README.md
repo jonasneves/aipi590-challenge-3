@@ -4,8 +4,8 @@ Training a robotic grasping/reaching policy in MuJoCo simulation using SAC + Hin
 
 ## Notebooks
 
-- **[challenge3.ipynb](notebooks/challenge3.ipynb)** — Main: 1M timesteps, FetchPickAndPlace-v4 (manipulation task)
-- **[challenge3-v1.ipynb](notebooks/challenge3-v1.ipynb)** — Alternative: 200k timesteps, FetchReach-v4 (reaching task)
+- **[challenge3-pickandplace.ipynb](notebooks/challenge3-pickandplace.ipynb)** — Main: 1M timesteps, FetchPickAndPlace-v4 (manipulation task)
+- **[challenge3-reach-experimentation.ipynb](notebooks/challenge3-reach-experimentation.ipynb)** — Experimentation: 200k timesteps, FetchReach-v4 (reaching task)
 
 ## Trained Policies
 
