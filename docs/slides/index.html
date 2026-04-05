@@ -6,90 +6,241 @@
 <title>Challenge 3 — Slides</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --slide-accent: #00539B;
+    --accent: #C84E00;
+    --bg: #ffffff;
+    --text: #012169;
+    --text-muted: #666666;
+    --surface-raised: #f0f2f5;
+    --border: #E2E6ED;
+    --border-subtle: #F3F2F1;
+    --mono: 'SF Mono', 'Fira Code', monospace;
+    --sf: min(0.95vw, 16px);
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: #1a1a1a; color: #e0e0e0; padding: 40px 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #111; color: #e0e0e0;
+    padding: 40px 0;
+  }
+  .toolbar {
+    max-width: calc(min(95vw, 960px));
+    margin: 0 auto 24px;
+    display: flex; justify-content: flex-end;
+  }
+  .toolbar button {
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 8px 16px; border: 1px solid #444; border-radius: 4px;
+    background: #222; color: #aaa; cursor: pointer;
+  }
+  .toolbar button:hover { background: #333; color: #ddd; }
+  .toolbar button.active { border-color: #C84E00; color: #C84E00; }
 
-  .slide-wrapper { max-width: 960px; margin: 0 auto 48px; }
+  /* ── Slide wrapper ─────────────────────────────────────────────── */
+  .slide-wrapper { max-width: calc(min(95vw, 960px)); margin: 0 auto 48px; }
 
+  /* ── Slide frame (16:9, matches agora presenting mode) ─────────── */
   .slide {
     width: 100%; aspect-ratio: 16 / 9;
-    background: #fff; color: #1a1a1a;
-    border-radius: 6px; overflow: hidden;
-    padding: 4% 5%; position: relative;
+    background-color: var(--bg);
+    border-radius: 4px; overflow: hidden; position: relative;
     display: flex; flex-direction: column;
-    font-size: min(1.8vw, 17px);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    justify-content: flex-start;
+    padding: calc(3 * var(--sf)) calc(4 * var(--sf)) calc(8 * var(--sf));
+    font-size: calc(2 * var(--sf));
+    box-shadow: 0 8px 48px rgba(0,0,0,0.7);
+  }
+  /* Duke logo watermark */
+  .slide::after {
+    content: '';
+    position: absolute;
+    bottom: 3.5%; right: 3.5%;
+    width: 8.5%; height: 12%;
+    background: url(img/duke-logo.png) no-repeat center/contain;
+    opacity: 0.12;
+    pointer-events: none;
   }
 
+  /* ── Cover slide ───────────────────────────────────────────────── */
   .slide--cover {
-    background: #012169 url('') center/cover; color: #f3f2f1;
+    background: #012169 url(img/cover.jpg) center/cover;
     justify-content: center;
+    padding-bottom: calc(3 * var(--sf));
   }
+  .slide--cover::after { filter: invert(1); opacity: 0.25; }
   .slide--cover .tag { color: rgba(243,242,241,0.75); }
-  .slide--cover h2 { color: #f3f2f1; }
-  .slide--cover em { color: #C84E00; font-style: normal; }
-  .slide--cover .subtitle { color: rgba(243,242,241,0.6); font-weight: 300; margin-top: 0.4em; font-size: 1.1em; }
-  .slide--cover .names { color: rgba(243,242,241,0.6); margin-top: 1.2em; padding-top: 0.8em; border-top: 1px solid rgba(255,255,255,0.15); font-size: 0.8em; }
-
-  .tag { font-size: 0.6em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 0.5em; display: flex; align-items: center; gap: 0.4em; }
-  .tag::before { content: ''; width: 1em; height: 2px; background: currentColor; }
-  h2 { font-size: 1.7em; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 0.7em; }
-  h2 em { color: #012169; font-style: normal; }
-  .slide--cover h2 { font-size: 2.2em; }
-  .slide--cover h2 em { color: #C84E00; }
-
-  ul { list-style: none; display: flex; flex-direction: column; gap: 0.6em; }
-  li { font-size: 1em; line-height: 1.5; padding-left: 1.2em; position: relative; }
-  li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 0.35em; height: 0.35em; border-radius: 50%; background: #012169; }
-
-  .callout {
-    margin-top: 0.8em; padding: 0.7em 1em;
-    background: #f8f9fb; border-left: 3px solid #012169;
-    border-radius: 0 4px 4px 0; font-size: 0.85em; color: #444; line-height: 1.5;
+  .slide--cover .tag::before { background: rgba(243,242,241,0.75); }
+  .slide--cover h2 { color: #F3F2F1; }
+  .slide--cover h2 em { color: var(--accent); }
+  .slide--cover .subtitle { color: rgba(243,242,241,0.60); font-weight: 300; margin-top: 0.3em; font-size: calc(2.08 * var(--sf)); }
+  .slide--cover .names {
+    color: rgba(243,242,241,0.60);
+    margin-top: 1em; padding-top: 0.6em;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    font-size: calc(1.46 * var(--sf));
   }
 
-  .pipeline { display: flex; align-items: center; justify-content: center; gap: 0; margin: 0.8em 0; flex-wrap: wrap; }
-  .pipe-step { display: flex; flex-direction: column; align-items: center; gap: 0.2em; padding: 0.5em 1em; background: #f0f2f5; border-radius: 4px; min-width: 6em; text-align: center; }
-  .pipe-num { font-size: 0.65em; font-weight: 700; color: #012169; }
-  .pipe-label { font-size: 0.75em; font-weight: 700; }
-  .pipe-desc { font-size: 0.65em; color: #666; }
-  .pipe-arrow { font-size: 1em; color: #999; padding: 0 0.4em; }
+  /* ── Tag ────────────────────────────────────────────────────────── */
+  .tag {
+    font-size: calc(1.25 * var(--sf));
+    font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--slide-accent);
+    margin-bottom: calc(0.5 * var(--sf));
+    display: flex; align-items: center;
+    gap: calc(0.52 * var(--sf));
+  }
+  .tag::before {
+    content: ''; display: inline-block;
+    width: calc(1.25 * var(--sf)); height: 2px;
+    background: var(--slide-accent); border-radius: 999px;
+  }
 
-  .stats { display: flex; gap: 0.8em; margin: 0.6em 0; }
-  .stat { flex: 1; padding: 0.6em 0.8em; background: #f0f2f5; border-radius: 4px; text-align: center; }
-  .stat-label { font-size: 0.6em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 0.2em; }
-  .stat-value { font-size: 1.3em; font-weight: 700; }
+  /* ── Headings ──────────────────────────────────────────────────── */
+  h2 {
+    font-size: calc(3.13 * var(--sf)); font-weight: 700;
+    letter-spacing: -0.025em; line-height: 1.05;
+    margin-bottom: calc(1.25 * var(--sf));
+    color: var(--text);
+  }
+  h2 em { font-style: normal; color: var(--slide-accent); }
+  .slide--cover h2 { font-size: calc(4.69 * var(--sf)); line-height: 1.0; letter-spacing: -0.03em; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin: 0.5em 0; }
-  th { text-align: left; font-size: 0.65em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #888; padding: 0.4em 0.6em; border-bottom: 2px solid #e0e0e0; }
-  td { padding: 0.3em 0.6em; border-bottom: 1px solid #f0f0f0; }
+  /* ── Bullets ───────────────────────────────────────────────────── */
+  ul.bullets {
+    list-style: none; display: flex; flex-direction: column;
+    gap: calc(1.15 * var(--sf)); margin-top: calc(0.5 * var(--sf));
+  }
+  .bullets li {
+    display: flex; align-items: flex-start;
+    gap: calc(0.8 * var(--sf));
+    font-size: calc(1.88 * var(--sf));
+    color: var(--text-muted); line-height: 1.6;
+  }
+  .bullets li::before {
+    content: '\2013'; color: var(--slide-accent);
+    font-family: var(--mono); font-size: calc(1.5 * var(--sf));
+    margin-top: 1px; flex-shrink: 0; font-weight: 600;
+  }
+  .bullets li strong { color: var(--text); font-weight: 500; }
 
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; flex: 1; align-items: center; margin-top: 0.4em; min-height: 0; }
-  .split img { width: 100%; height: 100%; object-fit: contain; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  /* ── Callout ───────────────────────────────────────────────────── */
+  .callout {
+    border-left: 2px solid var(--slide-accent);
+    padding: calc(0.56 * var(--sf)) calc(1 * var(--sf));
+    font-size: calc(1.56 * var(--sf));
+    color: var(--text-muted); line-height: 1.65;
+    margin-top: calc(1 * var(--sf));
+  }
+
+  /* ── Pipeline ──────────────────────────────────────────────────── */
+  .pipeline {
+    display: flex; align-items: center; justify-content: center;
+    margin: calc(1.25 * var(--sf)) 0; flex-wrap: wrap;
+  }
+  .pipe-step {
+    display: flex; flex-direction: column; align-items: center;
+    gap: calc(0.25 * var(--sf));
+    padding: calc(0.83 * var(--sf)) calc(1.25 * var(--sf));
+    background: var(--surface-raised); border-radius: 0.375rem;
+    min-width: calc(10 * var(--sf)); text-align: center;
+  }
+  .pipe-num { font-size: calc(1.25 * var(--sf)); font-weight: 700; color: var(--slide-accent); }
+  .pipe-label { font-size: calc(1.25 * var(--sf)); font-weight: 700; color: var(--text); }
+  .pipe-desc { font-size: calc(1.25 * var(--sf)); color: var(--text-muted); }
+  .pipe-arrow { font-size: calc(1.67 * var(--sf)); color: var(--text-muted); padding: 0 calc(0.4 * var(--sf)); }
+
+  /* ── Stats ─────────────────────────────────────────────────────── */
+  .stats {
+    display: flex; gap: calc(1.67 * var(--sf));
+    margin: calc(1 * var(--sf)) 0 calc(1.25 * var(--sf));
+  }
+  .stat {
+    flex: 1; padding: calc(1.25 * var(--sf)) calc(1.67 * var(--sf));
+    background: var(--surface-raised); border-radius: 0.375rem; text-align: center;
+  }
+  .stat-label {
+    font-size: calc(1.25 * var(--sf)); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); margin-bottom: calc(0.25 * var(--sf));
+  }
+  .stat-value { font-size: calc(2.29 * var(--sf)); font-weight: 700; color: var(--text); }
+
+  /* ── Table ─────────────────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; font-size: calc(1.67 * var(--sf)); margin: calc(0.5 * var(--sf)) 0; }
+  th {
+    text-align: left;
+    font-size: calc(1.25 * var(--sf)); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted);
+    padding: calc(0.67 * var(--sf)) calc(1.25 * var(--sf));
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: calc(0.52 * var(--sf)) calc(1.25 * var(--sf));
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text);
+  }
+
+  /* ── Split layout ──────────────────────────────────────────────── */
+  .split {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: calc(2 * var(--sf)); flex: 1; align-items: center;
+    margin-top: calc(0.5 * var(--sf)); min-height: 0;
+  }
+  .split img {
+    width: 100%; height: 100%; object-fit: contain;
+    border-radius: calc(0.75 * var(--sf));
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
   .split--img-left { grid-template-columns: 55% 1fr; }
 
-  .slide-num { font-size: 0.55em; color: #ccc; position: absolute; bottom: 3%; right: 5%; }
+  /* ── Slide number ──────────────────────────────────────────────── */
+  .slide-num {
+    position: absolute; bottom: calc(1.5 * var(--sf)); left: calc(4 * var(--sf));
+    font-size: calc(1 * var(--sf)); color: #ccc;
+  }
+  .slide--cover .slide-num { color: rgba(243,242,241,0.3); }
 
-  /* Speaker notes below the slide */
+  /* ── Speaker notes (below slide) ───────────────────────────────── */
   .notes {
     margin-top: 12px; padding: 16px 20px;
-    background: #242424; border-left: 3px solid #C84E00;
-    border-radius: 4px; font-size: 13px; color: #aaa; line-height: 1.7;
+    background: #1a1a1a; border-left: 3px solid #C84E00;
+    border-radius: 4px; font-size: 13px; color: #999; line-height: 1.7;
   }
   .notes-header {
     font-size: 11px; font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.08em; color: #C84E00; margin-bottom: 8px;
   }
+  .notes-hidden .notes { display: none; }
+
+  /* helpers */
+  .mt8 { margin-top: calc(0.5 * var(--sf)); }
 </style>
 </head>
 <body>
+<div class="toolbar">
+  <button id="toggleNotes" class="active">Speaker Notes</button>
+</div>
+<div id="slides"></div>
 <script type="module">
 import { deck } from './content.js';
 
-const container = document.body;
+const container = document.getElementById('slides');
 const slideIds = Object.keys(deck.slides);
+let notesVisible = true;
+
+document.getElementById('toggleNotes').addEventListener('click', (e) => {
+  notesVisible = !notesVisible;
+  e.target.classList.toggle('active', notesVisible);
+  container.querySelectorAll('.slide-wrapper').forEach(w => {
+    w.classList.toggle('notes-hidden', !notesVisible);
+  });
+});
 
 slideIds.forEach((id, idx) => {
   const s = deck.slides[id];
@@ -98,14 +249,12 @@ slideIds.forEach((id, idx) => {
   const wrapper = document.createElement('div');
   wrapper.className = 'slide-wrapper';
 
-  // Slide frame
   const div = document.createElement('div');
   div.className = 'slide' + (isCover ? ' slide--cover' : '');
 
   let html = '';
-
-  // Speaker name only in notes below, not on the slide
   html += `<div class="slide-num">${idx + 1} / ${slideIds.length}</div>`;
+
   if (s.tag) html += `<div class="tag">${s.tag}</div>`;
 
   if (s.title) html += `<h2>${s.title}</h2>`;
@@ -144,14 +293,14 @@ slideIds.forEach((id, idx) => {
   if (s.img && s.bullets) {
     html += `<div class="split${s.img.includes('rollout') ? ' split--img-left' : ''}">`;
     if (s.img.includes('rollout')) {
-      html += `<div><img src="${s.img}" alt="${s.imgAlt || ''}"></div><div><ul>${s.bullets.map(b => `<li><span>${b}</span></li>`).join('')}</ul></div>`;
+      html += `<div><img src="${s.img}" alt="${s.imgAlt || ''}"></div><div><ul class="bullets">${s.bullets.map(b => `<li>${b}</li>`).join('')}</ul></div>`;
     } else {
-      html += `<div><ul>${s.bullets.map(b => `<li><span>${b}</span></li>`).join('')}</ul></div><div><img src="${s.img}" alt="${s.imgAlt || ''}"></div>`;
+      html += `<div><ul class="bullets">${s.bullets.map(b => `<li>${b}</li>`).join('')}</ul></div><div><img src="${s.img}" alt="${s.imgAlt || ''}"></div>`;
     }
     html += '</div>';
   } else {
-    if (s.bullets) html += '<ul>' + s.bullets.map(b => `<li><span>${b}</span></li>`).join('') + '</ul>';
-    if (s.img && !s.bullets) html += `<div style="text-align:center;margin-top:0.5em"><img src="${s.img}" alt="${s.imgAlt || ''}" style="max-width:80%;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08)"></div>`;
+    if (s.bullets) html += '<ul class="bullets">' + s.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>';
+    if (s.img && !s.bullets) html += `<div style="display:flex;justify-content:center;flex:1;min-height:0"><img src="${s.img}" alt="${s.imgAlt || ''}" style="max-width:80%;max-height:100%;object-fit:contain;border-radius:calc(0.75 * var(--sf));box-shadow:0 2px 12px rgba(0,0,0,0.08)"></div>`;
   }
 
   if (s.callout) html += `<div class="callout">${s.callout}</div>`;
@@ -159,7 +308,6 @@ slideIds.forEach((id, idx) => {
   div.innerHTML = html;
   wrapper.appendChild(div);
 
-  // Speaker notes below the slide
   if (s.notes) {
     const notes = document.createElement('div');
     notes.className = 'notes';
