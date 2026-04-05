@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenge 3 — Slides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; }
+
+  .slide {
+    max-width: 960px; margin: 32px auto; background: #fff;
+    border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    padding: 48px 56px; min-height: 420px;
+    display: flex; flex-direction: column; position: relative;
+  }
+  .slide--cover {
+    background: #012169; color: #f3f2f1;
+    justify-content: center; min-height: 360px;
+  }
+  .slide--cover .tag { color: rgba(243,242,241,0.75); }
+  .slide--cover h2 { color: #f3f2f1; }
+  .slide--cover em { color: #C84E00; font-style: normal; }
+  .slide--cover .subtitle { color: rgba(243,242,241,0.6); font-weight: 300; margin-top: 8px; font-size: 18px; }
+  .slide--cover .names { color: rgba(243,242,241,0.6); margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 14px; }
+
+  .tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 12px; }
+  h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 20px; }
+  h2 em { color: #012169; font-style: normal; }
+  .slide--cover h2 { font-size: 36px; }
+
+  ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  li { font-size: 16px; line-height: 1.5; padding-left: 20px; position: relative; }
+  li::before { content: ''; position: absolute; left: 0; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: #012169; }
+
+  .callout {
+    margin-top: 16px; padding: 14px 18px;
+    background: #f8f9fb; border-left: 3px solid #012169;
+    border-radius: 0 6px 6px 0; font-size: 14px; color: #444; line-height: 1.5;
+  }
+
+  .pipeline { display: flex; align-items: center; justify-content: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .pipe-step { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 20px; background: #f0f2f5; border-radius: 6px; min-width: 120px; text-align: center; }
+  .pipe-num { font-size: 12px; font-weight: 700; color: #012169; }
+  .pipe-label { font-size: 14px; font-weight: 700; }
+  .pipe-desc { font-size: 12px; color: #666; }
+  .pipe-arrow { font-size: 18px; color: #999; padding: 0 8px; }
+
+  .stats { display: flex; gap: 16px; margin: 16px 0; }
+  .stat { flex: 1; padding: 14px 18px; background: #f0f2f5; border-radius: 6px; text-align: center; }
+  .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 4px; }
+  .stat-value { font-size: 22px; font-weight: 700; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0; }
+  th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #888; padding: 8px 12px; border-bottom: 2px solid #e0e0e0; }
+  td { padding: 6px 12px; border-bottom: 1px solid #f0f0f0; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; align-items: center; margin-top: 8px; }
+  .split img { width: 100%; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .split--img-left { grid-template-columns: 55% 1fr; }
+
+  .notes {
+    margin-top: 16px; padding: 14px 18px;
+    background: #fffbf5; border-left: 3px solid #C84E00;
+    border-radius: 0 6px 6px 0; font-size: 13px; color: #555; line-height: 1.6;
+  }
+  .notes summary { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #C84E00; cursor: pointer; }
+
+  .speaker-badge {
+    position: absolute; top: 16px; right: 20px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #999;
+  }
+  .slide--cover .speaker-badge { color: rgba(243,242,241,0.5); }
+
+  .slide-num { font-size: 11px; color: #ccc; position: absolute; bottom: 16px; right: 20px; }
+</style>
+</head>
+<body>
+<script type="module">
+import { deck } from './content.js';
+
+const container = document.body;
+const slideIds = Object.keys(deck.slides);
+
+slideIds.forEach((id, idx) => {
+  const s = deck.slides[id];
+  const isCover = id === 's1' || id === 's11';
+  const div = document.createElement('div');
+  div.className = 'slide' + (isCover ? ' slide--cover' : '');
+
+  let html = '';
+
+  // Speaker badge
+  if (s.speaker) html += `<div class="speaker-badge">${s.speaker}</div>`;
+
+  // Slide number
+  html += `<div class="slide-num">${idx + 1} / ${slideIds.length}</div>`;
+
+  // Tag
+  if (s.tag) html += `<div class="tag">${s.tag}</div>`;
+
+  // Title / heading
+  if (s.title) html += `<h2>${s.title}</h2>`;
+  else if (s.heading) html += `<h2>${s.heading}</h2>`;
+
+  // Subtitle (cover)
+  if (s.subtitle) html += `<div class="subtitle">${s.subtitle}</div>`;
+
+  // Name (cover)
+  if (s.name && isCover) html += `<div class="names">${s.name}</div>`;
+
+  // Pipeline
+  if (s.pipeline) {
+    html += '<div class="pipeline">';
+    s.pipeline.forEach((p, i) => {
+      html += `<div class="pipe-step"><div class="pipe-num">${i+1}</div><div class="pipe-label">${p.label}</div><div class="pipe-desc">${p.desc}</div></div>`;
+      if (i < s.pipeline.length - 1) html += '<div class="pipe-arrow">\u2192</div>';
+    });
+    html += '</div>';
+  }
+
+  // Stats
+  if (s.stats) {
+    html += '<div class="stats">';
+    s.stats.forEach(st => html += `<div class="stat"><div class="stat-label">${st.label}</div><div class="stat-value">${st.value}</div></div>`);
+    html += '</div>';
+  }
+
+  // Comparison table
+  if (s.comparisonTable) {
+    const t = s.comparisonTable;
+    html += '<table><thead><tr>' + t.headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+    t.rows.forEach(row => {
+      html += '<tr>' + row.map(cell => {
+        if (typeof cell === 'object') return `<td>${cell.value}</td>`;
+        return `<td>${cell}</td>`;
+      }).join('') + '</tr>';
+    });
+    html += '</tbody></table>';
+  }
+
+  // Image + bullets split
+  if (s.img && s.bullets) {
+    html += `<div class="split${s.img.includes('rollout') ? ' split--img-left' : ''}">`;
+    if (s.img.includes('rollout')) {
+      html += `<div><img src="${s.img}" alt="${s.imgAlt || ''}"></div><div><ul>${s.bullets.map(b => `<li><span>${b}</span></li>`).join('')}</ul></div>`;
+    } else {
+      html += `<div><ul>${s.bullets.map(b => `<li><span>${b}</span></li>`).join('')}</ul></div><div><img src="${s.img}" alt="${s.imgAlt || ''}"></div>`;
+    }
+    html += '</div>';
+  } else {
+    // Bullets only
+    if (s.bullets) {
+      html += '<ul>' + s.bullets.map(b => `<li><span>${b}</span></li>`).join('') + '</ul>';
+    }
+    // Image only
+    if (s.img && !s.bullets) {
+      html += `<div style="text-align:center;margin-top:12px"><img src="${s.img}" alt="${s.imgAlt || ''}" style="max-width:100%;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.08)"></div>`;
+    }
+  }
+
+  // Callout
+  if (s.callout) html += `<div class="callout">${s.callout}</div>`;
+
+  // Speaker notes (collapsed)
+  if (s.notes) {
+    html += `<details class="notes"><summary>Speaker notes</summary><p>${s.notes}</p></details>`;
+  }
+
+  div.innerHTML = html;
+  container.appendChild(div);
+});
+</script>
+</body>
+</html>
