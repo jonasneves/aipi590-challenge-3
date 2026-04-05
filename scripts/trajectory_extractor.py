@@ -1,4 +1,4 @@
-"""Extract trajectory data from policy rollouts for visualization."""
+"""Extract trajectory data and record videos from the same rollouts."""
 
 import json
 import numpy as np
@@ -8,8 +8,6 @@ import gymnasium_robotics
 from pathlib import Path
 
 
-# Geoms to save: mesh name -> STL filename
-# These are the visual geoms for the Fetch robot arm + gripper
 FETCH_MESH_GEOMS = [
     'robot0:base_link',
     'robot0:torso_lift_link',
@@ -36,7 +34,6 @@ def _get_geom_transforms(model, data):
         try:
             gid = model.geom(geom_name).id
             pos = data.geom_xpos[gid].tolist()
-            # Convert 3x3 rotation matrix to quaternion [w,x,y,z]
             quat = np.zeros(4)
             mujoco.mju_mat2Quat(quat, data.geom_xmat[gid])
             transforms[geom_name] = {
@@ -64,15 +61,36 @@ def extract_trajectory(
     env_id: str = 'FetchPickAndPlace-v4',
     n_episodes: int = 1,
     deterministic: bool = True,
+    video_dir: str | Path | None = None,
+    video_prefix: str | None = None,
 ) -> list[dict]:
-    """Run policy and extract trajectory data for visualization."""
+    """Run policy rollouts, extract trajectory data and optionally record videos.
+
+    When video_dir is provided, videos are recorded from the same environment
+    instance and episodes as the trajectory data, so they match exactly.
+    """
     gym.register_envs(gymnasium_robotics)
-    env = gym.make(env_id)
+
+    render_mode = 'rgb_array' if video_dir else None
+    env = gym.make(env_id, render_mode=render_mode)
+
+    if video_dir:
+        video_dir = Path(video_dir)
+        video_dir.mkdir(parents=True, exist_ok=True)
+        if video_prefix is None:
+            video_prefix = env_id.split('-')[0].lower()
+        env = gym.wrappers.RecordVideo(
+            env,
+            str(video_dir),
+            episode_trigger=lambda ep: True,
+            name_prefix=video_prefix,
+        )
 
     mj_model = env.unwrapped.model
     mj_data = env.unwrapped.data
 
     episodes = []
+    successes = 0
 
     for ep in range(n_episodes):
         obs, _ = env.reset()
@@ -105,11 +123,15 @@ def extract_trajectory(
             done = terminated or truncated
             step += 1
 
-        trajectory['success'] = bool(info.get('is_success', False))
+        success = bool(info.get('is_success', False))
+        trajectory['success'] = success
         trajectory['length'] = step
         episodes.append(trajectory)
+        if success:
+            successes += 1
 
     env.close()
+    print(f'Success rate: {successes}/{n_episodes}')
     return episodes
 
 
