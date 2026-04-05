@@ -39,6 +39,22 @@
         footer { padding: 12px 24px; border-top: 1px solid #1e2749; font-size: 12px; color: #666; }
         a { color: #6ba3ff; text-decoration: none; }
         #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #666; font-size: 14px; }
+        .part-label {
+            position: fixed;
+            background: hsla(228, 18%, 12%, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid hsla(228, 14%, 28%, 0.4);
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-size: 12px;
+            padding: 3px 8px;
+            pointer-events: none;
+            white-space: nowrap;
+            display: none;
+            z-index: 100;
+        }
+        .part-label.visible { display: block; }
     </style>
 </head>
 <body>
@@ -51,6 +67,7 @@
             <canvas id="canvas"></canvas>
             <div id="loading">Loading meshes...</div>
         </div>
+        <div class="part-label" id="partLabel"></div>
         <div class="controls">
             <div class="control-group">
                 <label>Episode</label>
@@ -468,6 +485,88 @@
             renderer.setSize(canvas.clientWidth, canvas.clientHeight);
         }
 
+        // --- Hover labels ---
+        const LABELS = {
+            'robot0:base_link': 'Base',
+            'robot0:torso_lift_link': 'Torso Lift',
+            'robot0:shoulder_pan_link': 'Shoulder Pan',
+            'robot0:shoulder_lift_link': 'Shoulder Lift',
+            'robot0:upperarm_roll_link': 'Upper Arm Roll',
+            'robot0:elbow_flex_link': 'Elbow Flex',
+            'robot0:forearm_roll_link': 'Forearm Roll',
+            'robot0:wrist_flex_link': 'Wrist Flex',
+            'robot0:wrist_roll_link': 'Wrist Roll',
+            'robot0:gripper_link': 'Gripper',
+            'robot0:r_gripper_finger_link': 'Right Finger',
+            'robot0:l_gripper_finger_link': 'Left Finger',
+        };
+
+        const raycaster = new THREE.Raycaster();
+        const _pointer = new THREE.Vector2();
+        const partLabel = document.getElementById('partLabel');
+        let hoveredMesh = null;
+        let _labelRaf = 0;
+
+        // Build mesh → name lookup (populated after loadMeshes)
+        let meshToName = new Map();
+
+        function buildMeshLookup() {
+            meshToName.clear();
+            for (const [name, mesh] of Object.entries(geomMeshes)) {
+                meshToName.set(mesh, name);
+            }
+            // Also map struts to their connecting joints
+            for (let i = 0; i < ARM_CHAIN.length; i++) {
+                const [from, to] = ARM_CHAIN[i];
+                const fromLabel = LABELS[from] || from;
+                const toLabel = LABELS[to] || to;
+                meshToName.set(armStruts[i], `__strut__${fromLabel} → ${toLabel}`);
+            }
+            // Scene objects
+            scene.traverse(obj => {
+                if (obj.isMesh && !meshToName.has(obj)) {
+                    if (obj === goalMesh) meshToName.set(obj, '__scene__Goal');
+                    else if (obj.geometry?.type === 'BoxGeometry' && obj.position.z < 0.3) meshToName.set(obj, '__scene__Table');
+                }
+            });
+        }
+
+        canvas.addEventListener('pointermove', (e) => {
+            cancelAnimationFrame(_labelRaf);
+            _labelRaf = requestAnimationFrame(() => {
+                const rect = canvas.getBoundingClientRect();
+                _pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                _pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(_pointer, camera);
+                const hits = raycaster.intersectObjects(scene.children, false);
+
+                let name = null;
+                for (const hit of hits) {
+                    const n = meshToName.get(hit.object);
+                    if (n) { name = n; break; }
+                }
+
+                if (name) {
+                    let displayName;
+                    if (name.startsWith('__strut__')) displayName = name.slice(8);
+                    else if (name.startsWith('__scene__')) displayName = name.slice(9);
+                    else displayName = LABELS[name] || name;
+
+                    partLabel.textContent = displayName;
+                    partLabel.style.left = (e.clientX + 14) + 'px';
+                    partLabel.style.top = (e.clientY - 32) + 'px';
+                    partLabel.classList.add('visible');
+                } else {
+                    partLabel.classList.remove('visible');
+                }
+            });
+        });
+
+        canvas.addEventListener('pointerleave', () => {
+            partLabel.classList.remove('visible');
+        });
+
         // --- Events ---
         document.getElementById('episodeSelect').addEventListener('change', e => loadEpisode(+e.target.value));
         document.getElementById('playPauseBtn').addEventListener('click', () => setPlaying(!isPlaying));
@@ -494,6 +593,7 @@
         // --- Init ---
         initScene();
         await loadMeshes();
+        buildMeshLookup();
         await loadTrajectories();
         animate();
     </script>
