@@ -218,6 +218,7 @@
     font-size: 11px; font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.08em; color: #C84E00; margin-bottom: 8px;
   }
+  .notes strong { color: #C84E00; font-weight: 600; }
   .notes-hidden .notes { display: none; }
 
   /* helpers */
@@ -226,7 +227,7 @@
 </head>
 <body>
 <div class="toolbar">
-  <button id="toggleNotes" class="active">Speaker Notes</button>
+  <button id="toggleNotes">Speaker Notes</button>
 </div>
 <div id="slides"></div>
 <script type="module">
@@ -234,7 +235,7 @@ import { deck } from './content.js';
 
 const container = document.getElementById('slides');
 const slideIds = Object.keys(deck.slides);
-let notesVisible = true;
+let notesVisible = false;
 
 document.getElementById('toggleNotes').addEventListener('click', (e) => {
   notesVisible = !notesVisible;
@@ -249,7 +250,7 @@ slideIds.forEach((id, idx) => {
   const isCover = id === 's1' || id === 's11';
 
   const wrapper = document.createElement('div');
-  wrapper.className = 'slide-wrapper';
+  wrapper.className = 'slide-wrapper notes-hidden';
 
   const div = document.createElement('div');
   div.className = 'slide' + (isCover ? ' slide--cover' : '');
@@ -313,7 +314,8 @@ slideIds.forEach((id, idx) => {
   if (s.notes) {
     const notes = document.createElement('div');
     notes.className = 'notes';
-    notes.innerHTML = `<div class="notes-header">Speaker: ${s.speaker || '?'}</div>${s.notes}`;
+    const rendered = s.notes.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    notes.innerHTML = `<div class="notes-header">Speaker: ${s.speaker || '?'}</div>${rendered}`;
     wrapper.appendChild(notes);
   }
 
