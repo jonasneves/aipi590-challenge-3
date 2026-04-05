@@ -480,12 +480,14 @@ def publish_artifacts(
 
     If paths is None, includes all files under results/ directory.
     """
+    _is_kaggle = "KAGGLE_KERNEL_RUN_TYPE" in os.environ
     _is_colab = False
-    try:
-        import google.colab  # noqa: F401
-        _is_colab = hasattr(google.colab, "output")
-    except ImportError:
-        pass
+    if not _is_kaggle:
+        try:
+            from google.colab import output as _colab_output
+            _is_colab = hasattr(_colab_output, "register_callback")
+        except ImportError:
+            pass
 
     repo_path = Path(repo_dir)
 
