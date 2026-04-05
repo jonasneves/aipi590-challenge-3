@@ -163,15 +163,14 @@ def extract_trajectory(
     ranked = sorted(all_episodes, key=_initial_distance, reverse=True)
     selected = ranked[:n_viz]
 
-    # Reassign episode indices
-    selected_raw_indices = set()
+    # Collect raw indices in ranked order, then reassign episode indices
+    ranked_raw_indices = [traj['episode'] for traj in selected]
     for i, traj in enumerate(selected):
-        selected_raw_indices.add(traj['episode'])
         traj['episode'] = i
 
-    # Clean up video files: keep selected, remove the rest, renumber, make GIFs
+    # Clean up video files: keep selected, renumber to match ranking, make GIFs
     if video_dir:
-        _keep_videos(video_dir, video_prefix, selected_raw_indices, n_run)
+        _keep_videos(video_dir, video_prefix, ranked_raw_indices, n_run)
         _convert_gifs(video_dir, video_prefix)
 
     kept_success = sum(1 for t in selected if t['success'])
@@ -179,30 +178,27 @@ def extract_trajectory(
     return selected
 
 
-def _keep_videos(video_dir, prefix, keep_indices, total):
-    """Keep only videos for selected episodes, renumber sequentially."""
+def _keep_videos(video_dir, prefix, ranked_raw_indices, total):
+    """Keep only videos for selected episodes, renumber to match ranking order."""
     video_dir = Path(video_dir)
+    keep_set = set(ranked_raw_indices)
 
-    # Group files by raw episode index
-    kept_episodes = []  # list of (raw_idx, [paths])
+    # Delete unselected episodes
     for raw_idx in range(total):
-        matches = sorted(video_dir.glob(f'{prefix}-episode-{raw_idx}.*'))
-        if raw_idx in keep_indices:
-            kept_episodes.append((raw_idx, matches))
-        else:
-            for f in matches:
+        if raw_idx not in keep_set:
+            for f in video_dir.glob(f'{prefix}-episode-{raw_idx}.*'):
                 f.unlink(missing_ok=True)
 
-    # First pass: rename all kept files to temp names to avoid collisions
-    temp_map = []  # (temp_path, final_path)
-    for new_idx, (raw_idx, paths) in enumerate(kept_episodes):
-        for path in paths:
+    # Rename kept episodes to match ranking order (ranked_raw_indices[0] -> episode-0, etc.)
+    # First pass: move to temp names to avoid collisions
+    temp_map = []
+    for new_idx, raw_idx in enumerate(ranked_raw_indices):
+        for path in sorted(video_dir.glob(f'{prefix}-episode-{raw_idx}.*')):
             ext = path.suffix
             tmp = path.parent / f'_tmp_ep{new_idx}{ext}'
             final = path.parent / f'{prefix}-episode-{new_idx}{ext}'
-            if path != final:
-                path.rename(tmp)
-                temp_map.append((tmp, final))
+            path.rename(tmp)
+            temp_map.append((tmp, final))
 
     # Second pass: temp -> final
     for tmp, final in temp_map:
