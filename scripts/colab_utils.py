@@ -86,10 +86,12 @@ def _do_publish(
     if (repo_path / ".git" / "shallow").exists():
         subprocess.run(["git", "fetch", "--unshallow", "origin", "main"], check=True, cwd=repo_path)
 
-    subprocess.run(["git", "add", "--force", "--", *rel_paths], check=True, cwd=repo_path)
+    # Collect the parent directories of artifacts so -A captures deletions too
+    artifact_dirs = sorted({str(Path(p).parts[0]) for p in rel_paths})
+    subprocess.run(["git", "add", "-A", "--", *artifact_dirs], check=True, cwd=repo_path)
 
     status = subprocess.run(
-        ["git", "status", "--porcelain", "--", *rel_paths],
+        ["git", "status", "--porcelain", "--", *artifact_dirs],
         cwd=repo_path, capture_output=True, text=True, check=True,
     )
     staged = [l for l in status.stdout.splitlines() if l and l[0] not in (" ", "?")]
@@ -98,7 +100,7 @@ def _do_publish(
         return False
 
     if dry_run:
-        print(f"[dry_run] Would commit: {', '.join(rel_paths)}")
+        print(f"[dry_run] Would commit: {', '.join(artifact_dirs)}")
         return False
 
     # Sync with remote: reset to origin/main, then recommit only our artifacts.
@@ -109,9 +111,9 @@ def _do_publish(
 
     subprocess.run(["git", "reset", "--soft", "origin/main"], check=True, cwd=repo_path)
 
-    # Re-stage only the artifact paths (soft reset moved everything to staged)
+    # Re-stage only the artifact directories (soft reset moved everything to staged)
     subprocess.run(["git", "reset", "HEAD", "--", "."], cwd=repo_path, capture_output=True)
-    subprocess.run(["git", "add", "--force", "--", *rel_paths], check=True, cwd=repo_path)
+    subprocess.run(["git", "add", "-A", "--", *artifact_dirs], check=True, cwd=repo_path)
 
     # Check if there's still something to commit after re-staging
     status2 = subprocess.run(
