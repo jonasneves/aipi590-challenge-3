@@ -168,6 +168,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+        import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
         const MESH_FILES = {
             'robot0:base_link': 'base_link_collision.stl',
@@ -192,17 +193,6 @@
 
         const FINGER_GEOMS = ['robot0:r_gripper_finger_link', 'robot0:l_gripper_finger_link'];
 
-        const ARM_CHAIN = [
-            ['robot0:torso_lift_link', 'robot0:shoulder_pan_link'],
-            ['robot0:shoulder_pan_link', 'robot0:shoulder_lift_link'],
-            ['robot0:shoulder_lift_link', 'robot0:upperarm_roll_link'],
-            ['robot0:upperarm_roll_link', 'robot0:elbow_flex_link'],
-            ['robot0:elbow_flex_link', 'robot0:forearm_roll_link'],
-            ['robot0:forearm_roll_link', 'robot0:wrist_flex_link'],
-            ['robot0:wrist_flex_link', 'robot0:wrist_roll_link'],
-            ['robot0:wrist_roll_link', 'robot0:gripper_link'],
-        ];
-
         const TRAIL_COLOR_SUCCESS = 0x339898;
         const TRAIL_COLOR_FAILURE = 0xC84E00;
         const MAX_TRAIL_POINTS = 1000;
@@ -211,17 +201,12 @@
         let scene, camera, renderer, controls;
         let trajectories = [], currentEpisode = null, currentStep = 0;
         let isPlaying = false, playSpeed = 1, lastTime = 0;
-        let geomMeshes = {}, armStruts = [];
+        let geomMeshes = {};
         let goalMesh, trailLine, trailCount = 0;
         let trailBuffer;
         const canvas = document.getElementById('canvas');
 
         const _quat = new THREE.Quaternion();
-        const _start = new THREE.Vector3();
-        const _end = new THREE.Vector3();
-        const _mid = new THREE.Vector3();
-        const _dir = new THREE.Vector3();
-        const _up = new THREE.Vector3(0, 1, 0);
 
         function mjQuat(q) {
             _quat.set(q[1], q[2], q[3], q[0]);
@@ -378,8 +363,10 @@
             const promises = [];
             for (const [geomName, file] of Object.entries(MESH_FILES)) {
                 promises.push(new Promise((resolve) => {
-                    loader.load('meshes/fetch/' + file, (geometry) => {
-                        centerAtBBox(geometry);
+                    loader.load('meshes/fetch/' + file, (rawGeometry) => {
+                        centerAtBBox(rawGeometry);
+                        // Merge coincident vertices then recompute normals for smooth shading
+                        const geometry = BufferGeometryUtils.mergeVertices(rawGeometry, 0.001);
                         geometry.computeVertexNormals();
                         const mat = matMap[LINK_MATERIALS[geomName]] || whiteMat;
                         const mesh = new THREE.Mesh(geometry, mat);
@@ -396,15 +383,6 @@
                 mesh.castShadow = true;
                 scene.add(mesh);
                 geomMeshes[name] = mesh;
-            }
-
-            // Struts bridge gaps between collision meshes
-            const strutMat = new THREE.MeshStandardMaterial({ color: 0xd0d0d0, roughness: 0.5, metalness: 0.2 });
-            for (const [from, to] of ARM_CHAIN) {
-                const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1, 10), strutMat);
-                strut.castShadow = true;
-                scene.add(strut);
-                armStruts.push(strut);
             }
 
             await Promise.all(promises);
@@ -439,21 +417,6 @@
                 }
             }
 
-            for (let i = 0; i < ARM_CHAIN.length; i++) {
-                const a = geoms[ARM_CHAIN[i][0]], b = geoms[ARM_CHAIN[i][1]];
-                const strut = armStruts[i];
-                if (!a || !b || !strut) continue;
-                _start.set(...a.pos);
-                _end.set(...b.pos);
-                _dir.subVectors(_end, _start);
-                const len = _dir.length();
-                _mid.addVectors(_start, _end).multiplyScalar(0.5);
-                strut.position.copy(_mid);
-                strut.scale.set(1, len, 1);
-                strut.quaternion.setFromUnitVectors(_up, _dir.normalize());
-                strut.visible = true;
-            }
-
             goalMesh.position.set(...ts.goal_position);
 
             if (ts.object_position) {
@@ -469,7 +432,6 @@
 
         function updateLegacy(ts) {
             for (const m of Object.values(geomMeshes)) m.visible = false;
-            for (const s of armStruts) s.visible = false;
             goalMesh.position.set(...ts.goal_position);
             objectMesh.visible = !!ts.object_position;
             if (ts.object_position) objectMesh.position.set(...ts.object_position);
@@ -613,17 +575,10 @@
             for (const [name, mesh] of Object.entries(geomMeshes)) {
                 meshToName.set(mesh, name);
             }
-            // Also map struts to their connecting joints
-            for (let i = 0; i < ARM_CHAIN.length; i++) {
-                const [from, to] = ARM_CHAIN[i];
-                const fromLabel = LABELS[from] || from;
-                const toLabel = LABELS[to] || to;
-                meshToName.set(armStruts[i], `__strut__${fromLabel} → ${toLabel}`);
-            }
-            // Scene objects
             scene.traverse(obj => {
                 if (obj.isMesh && !meshToName.has(obj)) {
                     if (obj === goalMesh) meshToName.set(obj, '__scene__Goal');
+                    else if (obj === objectMesh) meshToName.set(obj, '__scene__Object');
                     else if (obj.geometry?.type === 'BoxGeometry' && obj.position.z < 0.3) meshToName.set(obj, '__scene__Table');
                 }
             });
@@ -647,8 +602,7 @@
 
                 if (name) {
                     let displayName;
-                    if (name.startsWith('__strut__')) displayName = name.slice(8);
-                    else if (name.startsWith('__scene__')) displayName = name.slice(9);
+                    if (name.startsWith('__scene__')) displayName = name.slice(9);
                     else displayName = LABELS[name] || name;
 
                     partLabel.textContent = displayName;
