@@ -223,6 +223,61 @@
 
   /* helpers */
   .mt8 { margin-top: calc(0.5 * var(--sf)); }
+
+  /* ── Mobile ──────────────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    :root { --slide-w: 100vw; }
+    body { padding: 16px 0; }
+
+    /* Break out of 16:9 — let content breathe */
+    .slide {
+      aspect-ratio: auto;
+      min-height: auto;
+      padding: 24px 20px 32px;
+      font-size: max(14px, calc(2 * var(--sf)));
+    }
+    .slide::after { width: 48px; bottom: 12px; right: 12px; }
+
+    .slide-wrapper { margin-bottom: 28px; }
+
+    /* Cover slide */
+    .slide--cover { padding: 40px 20px 32px; }
+    .slide--cover h2 { font-size: max(22px, calc(4.69 * var(--sf))); }
+    .slide--cover .subtitle { font-size: max(14px, calc(2.08 * var(--sf))); }
+    .slide--cover .names { font-size: max(12px, calc(1.46 * var(--sf))); }
+
+    /* Typography floors */
+    .tag { font-size: max(10px, calc(1.25 * var(--sf))); }
+    h2 { font-size: max(20px, calc(3.13 * var(--sf))); margin-bottom: 12px; }
+    .bullets li { font-size: max(14px, calc(1.88 * var(--sf))); }
+    .callout { font-size: max(13px, calc(1.56 * var(--sf))); }
+    .slide-num { font-size: max(10px, calc(1 * var(--sf))); }
+
+    /* Stats: 2-column grid */
+    .stats { flex-wrap: wrap; gap: 8px; }
+    .stat { flex: 1 1 calc(50% - 8px); min-width: 0; padding: 12px 10px; }
+    .stat-label { font-size: max(9px, calc(1.25 * var(--sf))); }
+    .stat-value { font-size: max(16px, calc(2.29 * var(--sf))); }
+
+    /* Split: stack vertically */
+    .split, .split--img-left { grid-template-columns: 1fr; gap: 12px; }
+    .split img { max-height: 240px; width: 100%; object-fit: contain; }
+
+    /* Pipeline: vertical */
+    .pipeline { flex-direction: column; align-items: stretch; gap: 6px; }
+    .pipe-step { min-width: 0; padding: 10px 14px; }
+    .pipe-arrow { transform: rotate(90deg); text-align: center; padding: 0; font-size: 16px; }
+    .pipe-num, .pipe-label, .pipe-desc { font-size: max(12px, calc(1.25 * var(--sf))); }
+
+    /* Table */
+    table { font-size: max(12px, calc(1.67 * var(--sf))); display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    th { font-size: max(10px, calc(1.25 * var(--sf))); padding: 6px 10px; white-space: nowrap; }
+    td { padding: 6px 10px; }
+
+    /* Notes */
+    .notes { font-size: 13px; padding: 12px 14px; }
+    .toolbar { padding: 0 12px; margin-bottom: 16px; }
+  }
 </style>
 </head>
 <body>
